@@ -252,39 +252,40 @@ if (BUILD_CLIENT)
     add_custom_command(TARGET mcpelauncher POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:mcpelauncher>/src)
-    add_custom_command(TARGET mcpelauncher POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_SOURCE_DIR}/libs/cef/lib/libcef.so $<TARGET_FILE_DIR:mcpelauncher>/libcef.so)
-    add_custom_command(TARGET mcpelauncher POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_SOURCE_DIR}/libs/cef/bin/icudtl.dat $<TARGET_FILE_DIR:mcpelauncher>/icudtl.dat)
-    add_custom_command(TARGET mcpelauncher POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_SOURCE_DIR}/libs/cef/bin/snapshot_blob.bin $<TARGET_FILE_DIR:mcpelauncher>/snapshot_blob.bin)
-    add_custom_command(TARGET mcpelauncher POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_SOURCE_DIR}/libs/cef/bin/natives_blob.bin $<TARGET_FILE_DIR:mcpelauncher>/natives_blob.bin)
-    add_custom_command(TARGET mcpelauncher POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E create_symlink
-            ${CMAKE_SOURCE_DIR}/libs/cef/bin/icudtl.dat $<TARGET_FILE_DIR:mcpelauncher>/icudtl.dat)
     add_non_source_dir_custom_command(${CMAKE_COMMAND} -E create_symlink
             ${CMAKE_SOURCE_DIR}/src/ui/browser/resources $<TARGET_FILE_DIR:mcpelauncher>/src/ui/browser/resources)
     add_non_source_dir_custom_command(${CMAKE_COMMAND} -E create_symlink
             ${CMAKE_SOURCE_DIR}/libs $<TARGET_FILE_DIR:mcpelauncher>/libs)
     add_non_source_dir_custom_command(${CMAKE_COMMAND} -E create_symlink
             ${CMAKE_SOURCE_DIR}/mcpelauncher-icon.png $<TARGET_FILE_DIR:mcpelauncher>/mcpelauncher-icon.png)
+            
+    if (CEF_ENABLED)
+        add_custom_command(TARGET mcpelauncher POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E create_symlink
+                ${CMAKE_SOURCE_DIR}/libs/cef/lib/libcef.so $<TARGET_FILE_DIR:mcpelauncher>/libcef.so)
+                
+        add_custom_command(TARGET mcpelauncher POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E create_symlink
+                ${CMAKE_SOURCE_DIR}/libs/cef/bin/snapshot_blob.bin $<TARGET_FILE_DIR:mcpelauncher>/snapshot_blob.bin)
+        add_custom_command(TARGET mcpelauncher POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E create_symlink
+                ${CMAKE_SOURCE_DIR}/libs/cef/bin/icudtl.dat $<TARGET_FILE_DIR:mcpelauncher>/icudtl.dat)
+        
+        add_custom_command(TARGET mcpelauncher POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_SOURCE_DIR}/libs/cef/bin/natives_blob.bin $<TARGET_FILE_DIR:mcpelauncher>/natives_blob.bin)
+        add_custom_command(TARGET mcpelauncher POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink
+            ${CMAKE_SOURCE_DIR}/libs/cef/bin/icudtl.dat $<TARGET_FILE_DIR:mcpelauncher>/icudtl.dat)
+    endif()
 
     install(TARGETS mcpelauncher
             RUNTIME DESTINATION share/mcpelauncher/bin/)
-    install(FILES libs/cef/lib/libcef.so libs/cef/bin/snapshot_blob.bin libs/cef/bin/natives_blob.bin libs/cef/bin/icudtl.dat start_mcpelauncher.sh
+    install(FILES start_mcpelauncher.sh
             DESTINATION share/mcpelauncher/bin
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
     install(FILES mcpelauncher-icon.png
             DESTINATION share/mcpelauncher
-            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
-    install(DIRECTORY libs/cef/res
-            DESTINATION share/mcpelauncher/libs/cef
-            PATTERN "*"
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
     install(DIRECTORY src/ui/browser/resources
             DESTINATION share/mcpelauncher/src/ui/browser
@@ -294,7 +295,8 @@ if (BUILD_CLIENT)
             DESTINATION share/mcpelauncher/libs
             PATTERN "*"
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
-    install(DIRECTORY DESTINATION bin/)
+    install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
+
     install(CODE "
     execute_process(
             COMMAND ${CMAKE_COMMAND} -E create_symlink
@@ -302,4 +304,15 @@ if (BUILD_CLIENT)
     )")
     install(FILES mcpelauncher.desktop DESTINATION share/applications/)
     install(FILES mcpelauncher-icon.png DESTINATION share/pixmaps/)
+    
+    if (CEF_ENABLED)
+            install(FILES libs/cef/lib/libcef.so libs/cef/bin/snapshot_blob.bin libs/cef/bin/natives_blob.bin libs/cef/bin/icudtl.dat
+                DESTINATION share/mcpelauncher/bin
+                PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
+            
+            install(DIRECTORY libs/cef/res
+                DESTINATION share/mcpelauncher/libs/cef
+                PATTERN "*"
+                PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ)
+    endif()
 endif()
