@@ -498,30 +498,51 @@ int main(int argc, char *argv[]) {
 
     if (graphicsApi == GraphicsApi::OPENGL) {
         patchOff = (unsigned int) hybris_dlsym(handle, "_ZN3mce11ShaderGroup10loadShaderERNS_12RenderDeviceERKSsS4_S4_S4_");
-        if (((unsigned char*) patchOff)[0x90C - 0x7F0 + 1] != 0xA0) {
+#ifdef __linux
+     if (((unsigned char*) patchOff)[0x15a + 3] != 0xA0) {
+#elif __APPLE__        
+     if (((unsigned char*) patchOff)[0x90C - 0x7F0 + 1] != 0xA0) {
+#endif
             Log::error("Launcher", "Graphics patch error: unexpected byte");
             return -1;
         }
+#ifdef __linux
+        ((unsigned char*) patchOff)[0x15a + 3] += 4;
+#elif __APPLE__
         ((unsigned char*) patchOff)[0x90C - 0x7F0 + 1] += 4;
+#endif
 
         reflectShaderUniformsOriginal = (void (*)(void*)) hybris_dlsym(handle, "_ZN3mce9ShaderOGL21reflectShaderUniformsEv");
         patchOff = (unsigned int) hybris_dlsym(handle, "_ZN3mce9ShaderOGLC2ERNS_11ShaderCacheERNS_13ShaderProgramES4_S4_") + (0x720 - 0x6A0);
         patchCallInstruction((void*) patchOff, (void*) &reflectShaderUniformsHook, false);
 
         bindVertexArrayOriginal = (void (*)(void*, void*, void*)) hybris_dlsym(handle, "_ZN3mce9ShaderOGL18bindVertexPointersERKNS_12VertexFormatEPv");
+#ifdef __linux
+        patchOff = (unsigned int) hybris_dlsym(handle, "_ZN3mce9ShaderOGL10bindShaderERNS_13RenderContextERKNS_12VertexFormatEPvj") + (0xEA5 - 0xE40);
+#elif __APPLE__
         patchOff = (unsigned int) hybris_dlsym(handle, "_ZN3mce9ShaderOGL10bindShaderERNS_13RenderContextERKNS_12VertexFormatEPvj") + (0x72 - 0x10);
+#endif
         patchCallInstruction((void*) patchOff, (void*) &bindVertexArrayHook, false);
 
         patchOff = (unsigned int) hybris_dlsym(handle, "_ZN2gl21supportsImmediateModeEv");
         patchCallInstruction((void*) patchOff, (void*) &supportsImmediateModeHook, true);
 
         patchOff = (unsigned int) hybris_dlsym(handle, "_ZNK3mce9BufferOGL10bindBufferERNS_13RenderContextE");
+#ifdef __linux
+        ((unsigned char*) patchOff)[0x2C] = 0x90;
+        ((unsigned char*) patchOff)[0x2D] = 0x90;
+#elif __APPLE__
         ((unsigned char*) patchOff)[0x29] = 0x90;
         ((unsigned char*) patchOff)[0x2A] = 0x90;
+#endif
 
         patchOff = (unsigned int) hybris_dlsym(handle, "_ZN3mce16ShaderProgramOGL20compileShaderProgramERNS_11ShaderCacheE");
         const char* versionStr = "#version 410\n";
+#ifdef __linux
+        patchOff += 0xA2 - 0x30;
+#elif __APPLE__
         patchOff += 0xB3 - 0x40;
+#endif
         ((unsigned char*) patchOff)[0] = 0xB9;
         *((size_t*) (patchOff + 1)) = (size_t) versionStr;
         ((unsigned char*) patchOff)[5] = 0x90;
